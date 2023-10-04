@@ -1,7 +1,9 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
+app.use(morgan('tiny'))
 
 
 let persons = [
@@ -28,10 +30,11 @@ let persons = [
 ]
 
 const generateId = () => {
-    const lastIndex = persons.length - 1
-    const newId = persons[lastIndex].id + 1
-    return newId;
-}
+    const min = 1;
+    const max = 10000001;
+    const randomNumber = Math.floor(Math.random() * (max - min)) + min;
+    return randomNumber;
+  }
 
 app.post('/api/persons', (req, res) => {
     const {name, number} = req.body;
