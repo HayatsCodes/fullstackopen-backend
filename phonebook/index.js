@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 
 let persons = [
     { 
@@ -24,6 +26,32 @@ let persons = [
       "number": "39-23-6423122"
     }
 ]
+
+const generateId = () => {
+    const lastIndex = persons.length - 1
+    const newId = persons[lastIndex].id + 1
+    return newId;
+}
+
+app.post('/api/persons', (req, res) => {
+    const {name, number} = req.body;
+
+    if (!name || !number) {
+        return res.status(400).json({error: 'name or number is missing'})
+    }
+
+    if (persons.find(person => person.name === name)) {
+        return res.status(400).json({ error: 'name must be unique' })
+    }
+
+    const id = generateId();
+
+    const newPerson = {name, number, id}
+
+    persons = persons.concat(newPerson)
+
+    return res.status(201).json(newPerson)
+})
 
 app.get('/api/persons', (req, res) => {
     res.json(persons)
