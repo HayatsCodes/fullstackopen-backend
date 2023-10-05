@@ -1,8 +1,10 @@
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
+const cors = require('cors')
 
 app.use(express.json())
+app.use(cors())
 
 morgan.token('body', (req, res) => JSON.stringify(req.body));
 app.use(morgan(':method :url :status :response-time ms :body'));
@@ -54,6 +56,7 @@ app.post('/api/persons', (req, res) => {
 
     persons = persons.concat(newPerson)
 
+
     return res.status(201).json(newPerson)
 })
 
@@ -64,7 +67,6 @@ app.get('/api/persons', (req, res) => {
 app.get('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     const person = persons.find(person => person.id === id)
-    console.log(person)
     if (person) {
         res.json(person)
     } else {
