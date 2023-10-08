@@ -50,6 +50,17 @@ app.get("/api/persons/:id", async (req, res, next) => {
   }
 });
 
+app.patch('/api/persons/:id', async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const body = req.body;
+    const updatedPerson = await Person.findByIdAndUpdate(id, {name: body.name, number: body.number}, {new: true});
+    res.json(updatedPerson);
+  } catch(error) {
+    next(error)
+  }
+})
+
 app.delete("/api/persons/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
