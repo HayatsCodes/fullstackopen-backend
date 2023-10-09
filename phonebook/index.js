@@ -13,22 +13,26 @@ app.use(express.json());
 morgan.token("body", (req, res) => JSON.stringify(req.body));
 app.use(morgan(":method :url :status :response-time ms :body"));
 
-app.post("/api/persons", async (req, res) => {
-  const { name, number } = req.body;
+app.post("/api/persons", async (req, res, next) => {
+  try {
+    const { name, number } = req.body;
 
-  if (!name || !number) {
-    return res.status(400).json({ error: "name or number is missing" });
+    if (!name || !number) {
+      return res.status(400).json({ error: "name or number is missing" });
+    }
+
+    if (await Person.findOne({ name })) {
+      return res.status(400).json({ error: "name must be unique" });
+    }
+
+    const newPerson = new Person({ name, number });
+
+    const returnedPerson = await newPerson.save();
+
+    return res.status(201).json(returnedPerson);
+  } catch (error) {
+    next(error);
   }
-
-  if (await Person.findOne({ name })) {
-    return res.status(400).json({ error: "name must be unique" });
-  }
-
-  const newPerson = new Person({ name, number });
-
-  const returnedPerson = await newPerson.save();
-
-  return res.status(201).json(returnedPerson);
 });
 
 app.get("/api/persons", async (req, res) => {
@@ -46,20 +50,24 @@ app.get("/api/persons/:id", async (req, res, next) => {
       res.status(404).end();
     }
   } catch (error) {
-    next(error)
+    next(error);
   }
 });
 
-app.patch('/api/persons/:id', async (req, res, next) => {
+app.patch("/api/persons/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     const body = req.body;
-    const updatedPerson = await Person.findByIdAndUpdate(id, {name: body.name, number: body.number}, {new: true});
+    const updatedPerson = await Person.findByIdAndUpdate(
+      id,
+      { name: body.name, number: body.number },
+      { new: true }
+    );
     res.json(updatedPerson);
-  } catch(error) {
-    next(error)
+  } catch (error) {
+    next(error);
   }
-})
+});
 
 app.delete("/api/persons/:id", async (req, res, next) => {
   try {
@@ -67,9 +75,8 @@ app.delete("/api/persons/:id", async (req, res, next) => {
     await Person.findByIdAndDelete(id);
     res.status(204).end();
   } catch (error) {
-    next(error)
+    next(error);
   }
-  
 });
 
 app.get("/info", async (req, res) => {
@@ -90,7 +97,10 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
+
 
   next(error);
 };
