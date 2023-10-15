@@ -4,7 +4,7 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const logger = require('./utils/logger') // 1
 const config = require('./utils/config') // 2
-const Blog = require('./models/blogs')
+const Blog = require('./models/blogs') // 3
 
 const mongoUrl = config.MONGODB_URI
 mongoose.connect(mongoUrl)
