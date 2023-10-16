@@ -11,7 +11,11 @@ const favouriteBlog = (blogs) => {
     blogs.forEach(blog => {
         if (blog.likes >= favBlog.likes) {
             favBlog.likes = blog.likes
-            favBlog.blog = blog
+            favBlog.blog = {
+                title: blog.title,
+                author: blog.author,
+                likes: blog.likes
+            }
         }
     })
 
