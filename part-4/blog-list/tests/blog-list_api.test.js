@@ -6,7 +6,6 @@ const helper = require('../utils/helper')
 
 const api = supertest(app)
 
-
 beforeEach(async () => {
     await Blog.deleteMany({})
     const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
@@ -36,7 +35,6 @@ test('creation of a new blog', async () => {
     
     const blogsInDb = await helper.blogsInDB()
 
-    
     expect(blogsInDb).toHaveLength(helper.initialBlogs.length + 1)
 
     const lastBlog = (blogsInDb).find(blog => blog.title === 'How to use post function in SuperTest')
@@ -60,16 +58,30 @@ test('likes defaults to zero', async () => {
 
 })
 
-// describe('400 Bad request', () => {
-//     test('should not create when title is missing', async () => {
-//         await api 
-//             .post('/api/blogs')
-//             .set('Content-Type', 'application/json')
-//             .send(helper.newBlogWithoutTitle)
-//             .expect(400)
+describe('400 Bad request', () => {
+    test('should not create when title is missing', async () => {
+        await api 
+            .post('/api/blogs')
+            .set('Content-Type', 'application/json')
+            .send(helper.newBlogWithoutTitle)
+            .expect(400)
         
-//     })
-// })
+    const blogsInDb = await helper.blogsInDB()
+    expect(blogsInDb).toHaveLength(helper.initialBlogs.length)
+    })
+
+    test('should not create when URL is missing', async () => {
+        await api
+            .post('/api/blogs')
+            .set('Content-Type', 'application/json')
+            .send(helper.newBlogWithoutURL)
+            .expect(400)
+        
+    const blogsInDb = await helper.blogsInDB()
+    expect(blogsInDb).toHaveLength(helper.initialBlogs.length)
+    })
+
+})
 
 afterAll(async () => {
     await mongoose.connection.close()
