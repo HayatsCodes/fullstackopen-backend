@@ -7,7 +7,9 @@ const config = require('./utils/config')
 const middleware = require('./utils/middleware')
 const blogsRouter = require('./controllers/blogs')
 
-const mongoUrl = config.MONGODB_URI
+const mongoUrl = process.env.NODE_ENV !== 'test' 
+                ? config.MONGODB_URI
+                : config.TEST_MONGODB_URI
 mongoose.connect(mongoUrl)
 .then(() => {
     logger.info('connected to MongoDB')
