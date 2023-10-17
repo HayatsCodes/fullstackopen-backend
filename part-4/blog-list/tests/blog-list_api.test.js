@@ -58,6 +58,16 @@ test('likes defaults to zero', async () => {
 
 })
 
+test('delete a blog', async () => {
+    const response = await api.get('/api/blogs')
+    const id = response.body[0].id
+    await api
+        .delete(`/api/blogs/${id}`)
+    
+    const blogsInDb = await helper.blogsInDB()
+    expect(blogsInDb).toHaveLength(helper.initialBlogs.length - 1)
+})
+
 describe('400 Bad request', () => {
     test('should not create when title is missing', async () => {
         await api 
@@ -76,9 +86,9 @@ describe('400 Bad request', () => {
             .set('Content-Type', 'application/json')
             .send(helper.newBlogWithoutURL)
             .expect(400)
-        
-    const blogsInDb = await helper.blogsInDB()
-    expect(blogsInDb).toHaveLength(helper.initialBlogs.length)
+    
+        const blogsInDb = await helper.blogsInDB()
+        expect(blogsInDb).toHaveLength(helper.initialBlogs.length)
     })
 
 })
