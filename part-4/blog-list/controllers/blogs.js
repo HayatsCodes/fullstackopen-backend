@@ -1,21 +1,29 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blogs')
 
-blogsRouter.get('/', async (request, response) => {
+blogsRouter.get('/', async (req, res) => {
     const blogs = await Blog.find({})
-    response.json(blogs)
+    res.json(blogs)
 })
   
-blogsRouter.post('/', async (request, response) => {
-    const blog = new Blog(request.body)
+blogsRouter.post('/', async (req, res) => {
+    const blog = new Blog(req.body)
     const result = await blog.save()
-    response.status(201).json(result)
+    res.status(201).json(result)
   })
 
-blogsRouter.delete('/:id', async (request, response) => {
-    const {id} = request.params
+blogsRouter.delete('/:id', async (req, res) => {
+    const {id} = req.params
     await Blog.findByIdAndDelete(id)
-    response.status(204).end()
+    res.status(204).end()
+})
+
+blogsRouter.patch('/:id', async (req, res) => {
+    const {id} = req.params
+    const {body} = req
+
+    const updatedBlog = await Blog.findByIdAndUpdate(id, body, { new: true })
+    res.json(updatedBlog)
 })
   
   // blogsRouter.delete('/', (req, res) => {
