@@ -49,7 +49,6 @@ const initialBlogs = [
     title: "How to use post function in SuperTest",
     author: "Tabnine",
     url: "https://www.tabnine.com/code/javascript/functions/supertest/SuperTest/post",
-    likes: 2,
   }
 
 
@@ -81,13 +80,25 @@ test('creation of a new blog', async () => {
         .expect('Content-Type', /application\/json/)
     
     const blogsInDB = (await api.get('/api/blogs')).body
-    console.log('....... ', blogsInDB.length, ' .......')
     expect(blogsInDB).toHaveLength(initialBlogs.length + 1)
 
     const lastBlog = blogsInDB.find(blog => blog.title === 'How to use post function in SuperTest')
     expect(lastBlog.title).toBe(
       'How to use post function in SuperTest'
     )
+})
+
+test('likes defaults to zero', async () => {
+    await api
+        .post('/api/blogs')
+        .set('Content-Type', 'application/json')
+        .send(newBlog)
+
+    const blogsInDB = (await api.get('/api/blogs')).body
+    const lastBlog = blogsInDB.find(blog => blog.title === 'How to use post function in SuperTest')
+    expect(lastBlog.likes).toBeDefined()
+    expect(lastBlog.likes).toBe(0)
+
 
 })
 
