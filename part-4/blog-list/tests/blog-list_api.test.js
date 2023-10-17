@@ -72,6 +72,11 @@ test('of all blog list', async () => {
     expect(response.headers['content-type']).toMatch(/application\/json/)
 }, 10000)
 
+test('of defined id', async () => {
+    const response = await api.get('/api/blogs')
+    expect(response.body[0].id).toBeDefined()
+})
+
 afterAll(async () => {
     await mongoose.connection.close()
 })
