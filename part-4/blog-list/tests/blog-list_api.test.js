@@ -3,6 +3,7 @@ const supertest = require('supertest')
 const mongoose = require('mongoose')
 const Blog = require('../models/blogs')
 const helper = require('../utils/helper')
+const User = require('../models/users')
 
 const api = supertest(app)
 
@@ -81,6 +82,83 @@ test('update a blog', async () => {
     expect(updatedBlog.title).toBe(
       'How to use post function in SuperTest'
     )
+})
+
+describe('Invalid user are not created', () => {
+    beforeEach(async () => {
+        await User.deleteMany({})
+
+        const newUser = new User({
+            name: 'John Doe',
+            username: 'Doe',
+            passwordHash: 123456
+        })
+
+        await newUser.save()
+    })
+
+    test('username should be unique', async ()  => {
+        const newUser = {
+            name: 'John Doe',
+            username: 'Doe',
+            password: '123456'
+        }
+
+        const response = await api
+            .post('/api/users')
+            .send(newUser)
+            .expect(400)
+
+        expect(response.body.error).toContain('expected `username` to be unique')
+        
+    })
+
+    test('reject user with no username', async () => {
+        const newUser = {
+            name: 'Jane Dee',
+            password: '123456'
+        }
+
+        const response = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+
+
+        expect(response.body.error).toContain('Username is required.')
+
+    })
+
+    test('reject user with no passowrd', async () => {
+        const newUser = {
+            name: 'Jane Doe',
+            username: 'Dee',
+        }
+
+        const response = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+
+        expect(response.body.error).toContain('Password is required.')
+
+    })
+
+    test('reject passwords shorter than 3 characters', async () => {
+        const newUser = {
+            name: 'Jon Doe',
+            username: 'Dee',
+            password: '12'
+        }
+
+        const response = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+
+        expect(response.body.error).toContain('Password should be at least 3 characters long')
+
+    })
 })
 
 describe('400 Bad request', () => {
