@@ -68,6 +68,21 @@ test('delete a blog', async () => {
     expect(blogsInDb).toHaveLength(helper.initialBlogs.length - 1)
 })
 
+test('update a blog', async () => {
+    const response = await api.get('/api/blogs')
+    const id = response.body[0].id
+    await api
+        .patch(`/api/blogs/${id}`)
+        .send(helper.newBlog)
+    
+    const blogsInDb = await helper.blogsInDB()
+
+    const updatedBlog = (blogsInDb).find(blog => blog.title === 'How to use post function in SuperTest')
+    expect(updatedBlog.title).toBe(
+      'How to use post function in SuperTest'
+    )
+})
+
 describe('400 Bad request', () => {
     test('should not create when title is missing', async () => {
         await api 
