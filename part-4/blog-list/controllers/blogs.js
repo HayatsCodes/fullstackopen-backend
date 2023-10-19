@@ -35,7 +35,18 @@ blogsRouter.post('/', async (req, res) => {
 
 blogsRouter.delete('/:id', async (req, res) => {
     const {id} = req.params
-    await Blog.findByIdAndDelete(id)
+    const decodedToken = jwt.verify(req.token, process.env.SECRET_KEY)
+    if (!decodedToken.id) {
+      return res.status(401).json({ error: 'token invalid' })
+    }
+
+    const blog = await Blog.findById(id)
+    if (decodedToken.id.toString() === blog.user.toString()) {
+      await Blog.findByIdAndDelete(id)
+    } else {
+      return res.status(401).json({error: 'Unathorized user'})
+    }
+
     res.status(204).end()
 })
 
@@ -47,9 +58,9 @@ blogsRouter.patch('/:id', async (req, res) => {
     res.json(updatedBlog)
 })
   
-  blogsRouter.delete('/', async (req, res) => {
-    await Blog.deleteMany({})
-    res.status(204).end()
-  })
+  // blogsRouter.delete('/', async (req, res) => {
+  //   await Blog.deleteMany({})
+  //   res.status(204).end()
+  // })
 
   module.exports = blogsRouter
