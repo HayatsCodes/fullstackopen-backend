@@ -6,9 +6,23 @@ const helper = require('../utils/helper')
 const User = require('../models/users')
 
 const api = supertest(app)
+let token;
 
 beforeEach(async () => {
     await Blog.deleteMany({})
+    await api
+        .post('/api/users')
+        .set('Content-Type', 'application/json')
+        .send({username: "Doe", password: "password"})
+
+
+    const response = await api
+        .post('/api/login')
+        .set('Content-Type', 'application/json')
+        .send({username: "Doe", password: "password"})
+    
+    token = response.body.token
+
     const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
     const promiseArray = blogObjects.map(blog => blog.save())
     await Promise.all(promiseArray)
@@ -29,11 +43,11 @@ test('of defined id', async () => {
 test('creation of a new blog', async () => {
     await api
         .post('/api/blogs')
-        .set('Content-Type', 'application/json')
+        .set('Authorization', `bearer ${token}`)
         .send(helper.newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
-    
+        
     const blogsInDb = await helper.blogsInDB()
 
     expect(blogsInDb).toHaveLength(helper.initialBlogs.length + 1)
@@ -47,7 +61,7 @@ test('creation of a new blog', async () => {
 test('likes defaults to zero', async () => {
     await api
         .post('/api/blogs')
-        .set('Content-Type', 'application/json')
+        .set('Authorization', `bearer ${token}`)
         .send(helper.newBlogWithoutLikes)
     
     const blogsInDb = await helper.blogsInDB()
@@ -60,14 +74,26 @@ test('likes defaults to zero', async () => {
 })
 
 test('delete a blog', async () => {
-    const response = await api.get('/api/blogs')
-    const id = response.body[0].id
+    const newBlogResponse = await api
+        .post('/api/blogs')
+        .set('Authorization', `bearer ${token}`)
+        .send(helper.newBlog)
+
+    const newBlogId = newBlogResponse.body.id;
+
+    const response = await api.get('/api/blogs');
+    const lastIndex = response.body.length - 1;
+    const id = response.body[lastIndex].id;
+    
     await api
         .delete(`/api/blogs/${id}`)
-    
-    const blogsInDb = await helper.blogsInDB()
-    expect(blogsInDb).toHaveLength(helper.initialBlogs.length - 1)
+        .set('Authorization', `bearer ${token}`)
+        .expect(204);
+
+    const blogsInDb = await helper.blogsInDB();
+    expect(blogsInDb).toHaveLength(helper.initialBlogs.length);
 })
+
 
 test('update a blog', async () => {
     const response = await api.get('/api/blogs')
@@ -165,7 +191,7 @@ describe('400 Bad request', () => {
     test('should not create when title is missing', async () => {
         await api 
             .post('/api/blogs')
-            .set('Content-Type', 'application/json')
+            .set('Authorization', `bearer ${token}`)
             .send(helper.newBlogWithoutTitle)
             .expect(400)
         
@@ -176,7 +202,7 @@ describe('400 Bad request', () => {
     test('should not create when URL is missing', async () => {
         await api
             .post('/api/blogs')
-            .set('Content-Type', 'application/json')
+            .set('Authorization', `bearer ${token}`)
             .send(helper.newBlogWithoutURL)
             .expect(400)
     
