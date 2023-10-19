@@ -94,6 +94,17 @@ test('delete a blog', async () => {
     expect(blogsInDb).toHaveLength(helper.initialBlogs.length);
 })
 
+test('with no token, adding a blog fails', async () => {
+    await api
+        .post('/api/blogs')
+        .send(helper.newBlog)
+        .expect(401)
+        
+    const blogsInDb = await helper.blogsInDB()
+
+    expect(blogsInDb).toHaveLength(helper.initialBlogs.length)
+})
+
 
 test('update a blog', async () => {
     const response = await api.get('/api/blogs')
