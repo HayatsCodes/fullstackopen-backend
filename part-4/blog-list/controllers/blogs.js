@@ -1,14 +1,20 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blogs')
+const User = require('../models/users')
+const { info } = require('../utils/logger')
 
 blogsRouter.get('/', async (req, res) => {
-    const blogs = await Blog.find({})
+    const blogs = await Blog.find({}).populate('user', 'username name')
     res.json(blogs)
 })
   
 blogsRouter.post('/', async (req, res) => {
-    const blog = new Blog(req.body)
+    const {body} = req
+    const users = await User.find({})
+    const blog = new Blog({...body, user: users[0]._id})
     const result = await blog.save()
+    users[0].blogs = result._id
+    await users[0].save()
     res.status(201).json(result)
   })
 
@@ -26,9 +32,9 @@ blogsRouter.patch('/:id', async (req, res) => {
     res.json(updatedBlog)
 })
   
-  // blogsRouter.delete('/', (req, res) => {
-  //   Blog.deleteMany({})
-  //   .then(() => {console.log('Deleted all list succesfully!');})
-  // })
+  blogsRouter.delete('/', async (req, res) => {
+    await Blog.deleteMany({})
+    res.status(204).end()
+  })
 
   module.exports = blogsRouter
